@@ -55,7 +55,9 @@ body{
 /* Cabecera */
 .cabecera{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
 .marca{font-family:var(--cond);font-weight:700;font-size:2rem;letter-spacing:.005em;margin:0;line-height:1}
-.marca span{color:var(--verde)}
+.marca{display:flex;align-items:center;gap:.4rem}
+.marca .gota{width:1.15em;height:1.15em;color:var(--verde);flex-shrink:0}
+.marca .txt span{color:var(--verde)}
 .sello{font-size:.78rem;color:var(--tinta-suave);text-align:right;flex-shrink:0}
 
 /* Controles */
@@ -168,7 +170,7 @@ summary{cursor:pointer;font-size:.86rem;color:var(--tinta-suave)}
 <div class="envoltura">
 
   <header class="cabecera">
-    <h1 class="marca">Rastre<span>oil</span></h1>
+    <h1 class="marca"><svg class="gota" viewBox="0 0 120 120" aria-hidden="true"><path d="M60 18c0 0 32 34 32 52a32 32 0 0 1-64 0c0-18 32-52 32-52z" fill="currentColor"/><text x="60" y="86" text-anchor="middle" font-family="var(--cond)" font-weight="700" font-size="42" fill="var(--papel)">€</text></svg><span class="txt">Rastre<span>oil</span></span></h1>
     <div class="sello" id="sello">Precios del Ministerio</div>
   </header>
 
