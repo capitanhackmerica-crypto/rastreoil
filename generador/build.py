@@ -26,6 +26,7 @@ import logging
 import math
 import re
 import shutil
+import time
 import sys
 import unicodedata
 from collections import defaultdict
@@ -159,17 +160,43 @@ class Municipio:
 
 # --- Descarga ----------------------------------------------------------------
 
-def descargar() -> tuple[list[dict], str]:
-    log.info("Descargando dataset del Ministerio…")
-    with httpx.Client(timeout=120, follow_redirects=True) as cliente:
-        respuesta = cliente.get(ORIGEN_URL, headers={"Accept": "application/json"})
-        respuesta.raise_for_status()
-        datos = respuesta.json()
-    registros = datos.get("ListaEESSPrecio") or []
-    if not registros:
-        raise ValueError("El origen ha devuelto una lista vacía; se aborta la generación.")
-    log.info("Recibidos %d registros (fecha origen: %s)", len(registros), datos.get("Fecha"))
-    return registros, str(datos.get("Fecha", "")).strip()
+def descargar(intentos: int = 4) -> tuple[list[dict], str]:
+    """Descarga el dataset, reintentando ante fallos transitorios del origen.
+
+    El servicio del Ministerio responde a veces con un 200 y una lista vacía, o corta la
+    conexión. Son huecos que duran poco, así que conviene insistir antes de rendirse: con
+    un despliegue automático cada pocas horas, rendirse a la primera llena el buzón de
+    avisos de fallo por algo que se arregla solo.
+    """
+    espera = 10
+    ultimo_error: Exception | None = None
+
+    for intento in range(1, intentos + 1):
+        try:
+            log.info("Descargando dataset del Ministerio (intento %d de %d)…", intento, intentos)
+            with httpx.Client(timeout=120, follow_redirects=True) as cliente:
+                respuesta = cliente.get(ORIGEN_URL, headers={"Accept": "application/json"})
+                respuesta.raise_for_status()
+                datos = respuesta.json()
+
+            registros = datos.get("ListaEESSPrecio") or []
+            if not registros:
+                raise ValueError("el origen ha devuelto una lista vacía")
+
+            log.info("Recibidos %d registros (fecha origen: %s)", len(registros), datos.get("Fecha"))
+            return registros, str(datos.get("Fecha", "")).strip()
+
+        except (httpx.HTTPError, ValueError, json.JSONDecodeError) as exc:
+            ultimo_error = exc
+            if intento == intentos:
+                break
+            log.warning("Intento %d fallido (%s). Se reintenta en %d s.", intento, exc, espera)
+            time.sleep(espera)
+            espera *= 3
+
+    raise ValueError(
+        f"El origen no ha dado datos válidos tras {intentos} intentos: {ultimo_error}"
+    )
 
 
 def agrupar(registros: Iterable[dict]) -> dict[str, Municipio]:
