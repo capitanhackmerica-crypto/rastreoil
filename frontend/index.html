@@ -75,6 +75,7 @@ body{
 .manual select:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
 .grupo{margin-top:.9rem}
 .grupo > p{margin:0 0 .4rem;font-size:.82rem;color:var(--tinta-suave)}
+.explica{margin:.45rem 0 0 !important;font-size:.82rem;line-height:1.4;color:var(--tinta-suave)}
 .chips{display:flex;flex-wrap:wrap;gap:.4rem}
 .chip{
   border:1px solid var(--linea);background:transparent;color:var(--tinta);
@@ -197,10 +198,11 @@ summary{cursor:pointer;font-size:.86rem;color:var(--tinta-suave)}
     <div class="grupo">
       <p>Ordenar por</p>
       <div class="orden" id="orden">
-        <button data-orden="coste" aria-pressed="true">Coste real</button>
+        <button data-orden="coste" aria-pressed="true">Coste total</button>
         <button data-orden="precio" aria-pressed="false">Más barata</button>
         <button data-orden="distancia" aria-pressed="false">Más cercana</button>
       </div>
+      <p class="explica" id="explicaOrden"></p>
     </div>
 
     <details>
@@ -257,6 +259,13 @@ summary{cursor:pointer;font-size:.86rem;color:var(--tinta-suave)}
     ["Murcia", 37.9922, -1.1307],
   ];
 
+  const EXPLICACION = {
+    coste: "Te dice si merece la pena desviarse: al precio del repostaje le suma el carburante " +
+           "que gastas en ir hasta allí y volver.",
+    precio: "El litro más barato del radio, sin mirar lo lejos que esté.",
+    distancia: "La que pillas más a mano, cueste lo que cueste.",
+  };
+
   const estado = {
     producto: "gasolina95",
     orden: "coste",
@@ -303,6 +312,7 @@ summary{cursor:pointer;font-size:.86rem;color:var(--tinta-suave)}
     $("litros").value = estado.litros;
     $("consumo").value = estado.consumo;
     for (const b of $("orden").children) b.setAttribute("aria-pressed", b.dataset.orden === estado.orden);
+    $("explicaOrden").textContent = EXPLICACION[estado.orden] || "";
     for (const c of $("chipsProducto").children) c.setAttribute("aria-pressed", c.dataset.producto === estado.producto);
   }
 
@@ -479,6 +489,7 @@ summary{cursor:pointer;font-size:.86rem;color:var(--tinta-suave)}
     const media = datos.precio_medio;
     const ahorro = media ? (media - mejor.precio) * estado.litros : 0;
     const ruta = `https://www.google.com/maps/dir/?api=1&destination=${mejor.lat},${mejor.lon}`;
+    const desvio = mejor.coste_total - mejor.precio * estado.litros;
 
     const resto = lista.slice(1).map((e) => `
       <li>
@@ -504,6 +515,7 @@ summary{cursor:pointer;font-size:.86rem;color:var(--tinta-suave)}
         <div class="totem-pie">
           <div class="totem-datos">
             <b>${eur(mejor.coste_total)} € por ${eur(estado.litros, 0)} litros</b>
+            ${desvio > 0.02 ? `<i>Incluye ${eur(desvio)} € del carburante que gastas en ir y volver</i>` : ""}
             ${ahorro > 0.05 ? `<i class="ahorro">Ahorras ${eur(ahorro)} € frente a la media de la zona</i>` : ""}
             <i>${escapar(mejor.direccion)}, ${escapar(mejor.municipio)}</i>
             ${mejor.horario ? `<i>${escapar(mejor.horario)}</i>` : ""}
