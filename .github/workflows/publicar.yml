@@ -1,0 +1,55 @@
+name: Publicar Rastreoil
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+concurrency:
+  group: publicar
+  cancel-in-progress: true
+
+jobs:
+  construir:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Instalar dependencias
+        run: pip install httpx markdown
+
+      - name: Generar el sitio
+        working-directory: generador
+        run: python build.py --salida ../dist --base "${{ vars.URL_BASE }}"
+
+      - name: Comprobar que la generación no ha salido vacía
+        run: |
+          total=$(find dist -name index.html | wc -l)
+          echo "Páginas generadas: $total"
+          if [ "$total" -lt 500 ]; then
+            echo "Generación sospechosamente pequeña; se aborta el despliegue." >&2
+            exit 1
+          fi
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  desplegar:
+    needs: construir
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v4
