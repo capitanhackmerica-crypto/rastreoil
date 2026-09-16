@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rastreoil</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preload" href="fuentes/Barlow-Regular.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="fuentes/BarlowCondensed-Bold.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:"Barlow";src:url("fuentes/Barlow-Regular.woff2") format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Barlow";src:url("fuentes/Barlow-Medium.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"Barlow";src:url("fuentes/Barlow-SemiBold.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Barlow";src:url("fuentes/Barlow-Bold.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url("fuentes/BarlowCondensed-Medium.woff2") format("woff2");font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url("fuentes/BarlowCondensed-SemiBold.woff2") format("woff2");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Barlow Condensed";src:url("fuentes/BarlowCondensed-Bold.woff2") format("woff2");font-weight:700;font-style:normal;font-display:swap}
+
+:root{
+  --papel:#E7EBEE;
+  --superficie:#FFFFFF;
+  --tinta:#16232F;
+  --tinta-suave:#5B6B7A;
+  --linea:#CFD7DE;
+  --panel:#15202B;
+  --panel-linea:#2C3B4A;
+  --digito:#F6E7C8;
+  --verde:#0B7A4B;
+  --ambar:#B9750A;
+  --senal:#0B4FA8;
+  --sans:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --cond:"Barlow Condensed","Barlow",system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --papel:#0E1720; --superficie:#18242F; --tinta:#E6EDF3; --tinta-suave:#93A4B3;
+    --linea:#2B3A48; --panel:#0A1119; --panel-linea:#26333F; --verde:#3FBD84;
+    --ambar:#E0A64B; --senal:#7FB0F0;
+  }
+}
+:root[data-theme="dark"]{
+  --papel:#0E1720; --superficie:#18242F; --tinta:#E6EDF3; --tinta-suave:#93A4B3;
+  --linea:#2B3A48; --panel:#0A1119; --panel-linea:#26333F; --verde:#3FBD84;
+  --ambar:#E0A64B; --senal:#7FB0F0;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--papel);color:var(--tinta);
+  font-family:var(--sans);font-size:16px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  padding:0 0 3rem;
+}
+.envoltura{max-width:560px;margin:0 auto;padding:1rem}
+
+/* Cabecera */
+.cabecera{display:flex;align-items:baseline;justify-content:space-between;gap:.75rem;margin-bottom:1rem}
+.marca{font-family:var(--cond);font-weight:700;font-size:2rem;letter-spacing:.005em;margin:0;line-height:1}
+.marca span{color:var(--verde)}
+.sello{font-size:.78rem;color:var(--tinta-suave);text-align:right;flex-shrink:0}
+
+/* Controles */
+.controles{background:var(--superficie);border:1px solid var(--linea);border-radius:10px;padding:.9rem}
+.buscar{
+  width:100%;border:0;border-radius:8px;background:var(--senal);color:#fff;
+  font-family:var(--sans);font-weight:600;font-size:1.05rem;padding:.85rem 1rem;cursor:pointer;
+}
+.buscar:disabled{opacity:.55;cursor:progress}
+.buscar:focus-visible,.chip:focus-visible,.orden button:focus-visible,summary:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+.manual{display:flex;align-items:center;gap:.5rem;margin-top:.65rem}
+.manual label{font-size:.85rem;color:var(--tinta-suave);white-space:nowrap}
+.manual select{
+  flex:1;padding:.45rem .5rem;border:1px solid var(--linea);border-radius:6px;
+  background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:.95rem;
+}
+.manual select:focus-visible{outline:3px solid var(--ambar);outline-offset:2px}
+.grupo{margin-top:.9rem}
+.grupo > p{margin:0 0 .4rem;font-size:.82rem;color:var(--tinta-suave)}
+.explica{margin:.45rem 0 0 !important;font-size:.82rem;line-height:1.4;color:var(--tinta-suave)}
+.chips{display:flex;flex-wrap:wrap;gap:.4rem}
+.chip{
+  border:1px solid var(--linea);background:transparent;color:var(--tinta);
+  font-family:var(--sans);font-size:.9rem;padding:.4rem .7rem;border-radius:999px;cursor:pointer;
+}
+.chip[aria-pressed="true"]{background:var(--tinta);color:var(--superficie);border-color:var(--tinta)}
+.orden{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--linea);border-radius:8px;overflow:hidden}
+.orden button{
+  border:0;border-right:1px solid var(--linea);background:transparent;color:var(--tinta);
+  font-family:var(--sans);font-size:.88rem;padding:.55rem .3rem;cursor:pointer;
+}
+.orden button:last-child{border-right:0}
+.orden button[aria-pressed="true"]{background:var(--verde);color:#fff}
+.fila-radio{display:flex;align-items:center;gap:.75rem}
+input[type=range]{flex:1;accent-color:var(--verde)}
+.valor{font-family:var(--cond);font-weight:600;font-size:1.25rem;min-width:3.6rem;text-align:right;font-variant-numeric:tabular-nums}
+details{margin-top:.9rem;border-top:1px solid var(--linea);padding-top:.7rem}
+summary{cursor:pointer;font-size:.86rem;color:var(--tinta-suave)}
+.avanzado{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-top:.7rem}
+.avanzado label{display:block;font-size:.78rem;color:var(--tinta-suave);margin-bottom:.2rem}
+.avanzado input{
+  width:100%;padding:.45rem .55rem;border:1px solid var(--linea);border-radius:6px;
+  background:var(--papel);color:var(--tinta);font-family:var(--sans);font-size:1rem;
+}
+
+/* Avisos */
+.aviso{
+  margin-top:.9rem;padding:.6rem .75rem;border-left:3px solid var(--ambar);
+  background:var(--superficie);font-size:.85rem;border-radius:0 6px 6px 0;
+}
+.aviso.error{border-left-color:#C0392B}
+
+/* Tótem de la ganadora */
+.totem{margin-top:1.25rem}
+.totem-mastil{
+  background:var(--panel);border-radius:10px 10px 0 0;padding:1rem 1.1rem;color:var(--digito);
+  border:1px solid var(--panel-linea);border-bottom:0;
+}
+.totem-rotulo{
+  font-family:var(--cond);font-weight:700;font-size:1.5rem;line-height:1.1;
+  padding-bottom:.6rem;margin-bottom:.7rem;border-bottom:1px solid var(--panel-linea);
+  color:#fff;
+}
+.totem-cifra{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem}
+.precio-grande{
+  font-family:var(--cond);font-weight:700;font-size:4.4rem;line-height:.85;
+  font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+}
+.precio-grande small{font-family:var(--sans);font-size:1rem;font-weight:500;opacity:.7;margin-left:.2rem}
+.totem-lejos{text-align:right;font-family:var(--cond);font-weight:600;font-size:2rem;line-height:1;font-variant-numeric:tabular-nums}
+.totem-lejos small{display:block;font-family:var(--sans);font-size:.75rem;font-weight:400;opacity:.65}
+.totem-pie{
+  display:flex;flex-wrap:wrap;gap:.5rem 1rem;justify-content:space-between;align-items:center;
+  background:var(--superficie);border:1px solid var(--linea);border-top:0;
+  border-radius:0 0 10px 10px;padding:.85rem .9rem;
+}
+.totem-datos{font-size:.9rem}
+.totem-datos b{font-weight:600}
+.totem-datos i{display:block;font-style:normal;color:var(--tinta-suave);font-size:.82rem}
+.ir{
+  background:var(--verde);color:#fff;text-decoration:none;font-weight:600;font-size:.9rem;
+  padding:.5rem .9rem;border-radius:8px;white-space:nowrap;
+}
+.ahorro{color:var(--verde);font-weight:600}
+
+/* Lista */
+.lista{list-style:none;margin:1.5rem 0 0;padding:0}
+.lista li{
+  display:grid;grid-template-columns:auto 1fr auto;gap:.85rem;align-items:center;
+  padding:.75rem .25rem;border-bottom:1px solid var(--linea);
+}
+.lista .p{font-family:var(--cond);font-weight:600;font-size:1.6rem;font-variant-numeric:tabular-nums;line-height:1}
+.lista .n{font-weight:600;font-size:.95rem;line-height:1.2}
+.lista .d{color:var(--tinta-suave);font-size:.8rem;line-height:1.25;margin-top:.1rem}
+.lista .km{font-family:var(--cond);font-weight:500;font-size:1.15rem;color:var(--tinta-suave);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lista a{color:inherit;text-decoration:none;display:contents}
+
+.pie{margin-top:2rem;font-size:.75rem;color:var(--tinta-suave);line-height:1.5}
+.pie a{color:var(--tinta-suave)}
+.pie .legales{margin-top:.5rem}
+.pie .legales a{color:var(--senal)}
+.oculto{display:none !important}
+@media (prefers-reduced-motion:no-preference){
+  .totem,.lista li{animation:entrar .25s ease-out both}
+}
+@keyframes entrar{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+</style>
+</head>
+<body>
+<div class="envoltura">
+
+  <header class="cabecera">
+    <h1 class="marca">Rastre<span>oil</span></h1>
+    <div class="sello" id="sello">Precios del Ministerio</div>
+  </header>
+
+  <section class="controles">
+    <button class="buscar" id="btnBuscar">Buscar cerca de mí</button>
+
+    <div class="manual">
+      <label for="ciudad">o busca en</label>
+      <select id="ciudad">
+        <option value="">otra ubicación…</option>
+      </select>
+    </div>
+
+    <div class="grupo">
+      <p>Carburante</p>
+      <div class="chips" id="chipsProducto"></div>
+    </div>
+
+    <div class="grupo">
+      <p>Radio de búsqueda</p>
+      <div class="fila-radio">
+        <input type="range" id="radio" min="1" max="50" step="1" value="10" aria-label="Radio en kilómetros">
+        <span class="valor" id="radioValor">10 km</span>
+      </div>
+    </div>
+
+    <div class="grupo">
+      <p>Ordenar por</p>
+      <div class="orden" id="orden">
+        <button data-orden="coste" aria-pressed="true">Coste total</button>
+        <button data-orden="precio" aria-pressed="false">Más barata</button>
+        <button data-orden="distancia" aria-pressed="false">Más cercana</button>
+      </div>
+      <p class="explica" id="explicaOrden"></p>
+    </div>
+
+    <details>
+      <summary>Ajustar mi repostaje</summary>
+      <div class="avanzado">
+        <div>
+          <label for="litros">Litros que echo</label>
+          <input type="number" id="litros" value="40" min="1" max="200" step="1" inputmode="decimal">
+        </div>
+        <div>
+          <label for="consumo">Consumo (l/100 km)</label>
+          <input type="number" id="consumo" value="6.5" min="1" max="40" step="0.1" inputmode="decimal">
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <div id="avisos"></div>
+  <div id="resultado"></div>
+
+  <footer class="pie">
+    <p>Datos de precios publicados por el Ministerio para la Transición Ecológica y el Reto Demográfico
+    (datos abiertos, actualización aproximada cada 30 minutos). Rastreoil no almacena tu ubicación:
+    se usa en el dispositivo para calcular distancias y se descarta al cerrar.</p>
+    <p class="legales"><a href="aviso-legal/">Aviso legal</a>
+    · <a href="privacidad/">Privacidad</a>
+    · <a href="cookies/">Cookies</a></p>
+  </footer>
+</div>
+
+<script>
+(() => {
+  "use strict";
+
+  const PRODUCTOS = [
+    ["gasolina95", "Gasolina 95"],
+    ["gasolina98", "Gasolina 98"],
+    ["diesel", "Diésel"],
+    ["diesel_premium", "Diésel premium"],
+    ["glp", "GLP"],
+  ];
+
+  // Alternativa cuando no hay GPS disponible o el navegador bloquea la geolocalización.
+  const UBICACIONES = [
+    ["Ocaña", 39.9553, -3.4999],
+    ["Toledo", 39.8628, -4.0273],
+    ["Madrid", 40.4168, -3.7038],
+    ["Barcelona", 41.3874, 2.1686],
+    ["Valencia", 39.4699, -0.3763],
+    ["Sevilla", 37.3891, -5.9845],
+    ["Zaragoza", 41.6488, -0.8891],
+    ["Málaga", 36.7213, -4.4214],
+    ["Bilbao", 43.2630, -2.9350],
+    ["Murcia", 37.9922, -1.1307],
+  ];
+
+  const EXPLICACION = {
+    coste: "Lo que te cuesta el repostaje sumando el carburante que gastas en ir y volver. " +
+           "Desviarse mucho por dos céntimos sale a perder.",
+    precio: "El litro más barato del radio, sin tener en cuenta lo que gastas en llegar hasta allí.",
+    distancia: "La que tienes más a mano, al precio que sea.",
+  };
+
+  const estado = {
+    producto: "gasolina95",
+    orden: "coste",
+    radio: 10,
+    litros: 40,
+    consumo: 6.5,
+    pos: null,
+    lugar: null,
+    demo: false,
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const eur = (n, d = 2) => n.toLocaleString("es-ES", { minimumFractionDigits: d, maximumFractionDigits: d });
+  const km = (n) => n.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+
+  // --- Preferencias locales (solo comodidad, nunca la ubicación) -------------
+  function cargarPrefs() {
+    try {
+      const guardado = JSON.parse(localStorage.getItem("rastreoil:prefs") || "{}");
+      for (const clave of ["producto", "orden", "radio", "litros", "consumo"]) {
+        if (guardado[clave] !== undefined) estado[clave] = guardado[clave];
+      }
+    } catch (_) { /* sin almacenamiento disponible: se usan los valores por defecto */ }
+  }
+  function guardarPrefs() {
+    try {
+      localStorage.setItem("rastreoil:prefs", JSON.stringify({
+        producto: estado.producto, orden: estado.orden, radio: estado.radio,
+        litros: estado.litros, consumo: estado.consumo,
+      }));
+    } catch (_) { /* almacenamiento no disponible */ }
+  }
+
+  // --- Interfaz de controles ------------------------------------------------
+  function pintarChips() {
+    $("chipsProducto").innerHTML = PRODUCTOS.map(([clave, texto]) =>
+      `<button class="chip" data-producto="${clave}" aria-pressed="${clave === estado.producto}">${texto}</button>`
+    ).join("");
+  }
+
+  function sincronizar() {
+    $("radio").value = estado.radio;
+    $("radioValor").textContent = estado.radio + " km";
+    $("litros").value = estado.litros;
+    $("consumo").value = estado.consumo;
+    for (const b of $("orden").children) b.setAttribute("aria-pressed", b.dataset.orden === estado.orden);
+    $("explicaOrden").textContent = EXPLICACION[estado.orden] || "";
+    for (const c of $("chipsProducto").children) c.setAttribute("aria-pressed", c.dataset.producto === estado.producto);
+  }
+
+  function aviso(texto, esError) {
+    $("avisos").innerHTML = texto
+      ? `<div class="aviso${esError ? " error" : ""}">${texto}</div>` : "";
+  }
+
+  // --- Datos ----------------------------------------------------------------
+  async function consultar() {
+    const p = new URLSearchParams({
+      lat: estado.pos.lat, lon: estado.pos.lon, radio_km: estado.radio,
+      producto: estado.producto, orden: estado.orden,
+      litros: estado.litros, consumo: estado.consumo,
+    });
+    const respuesta = await fetch("/api/estaciones?" + p, { headers: { Accept: "application/json" } });
+    if (!respuesta.ok) throw new Error("La búsqueda ha fallado (" + respuesta.status + ")");
+    return respuesta.json();
+  }
+
+  // --- Modo estático: sin servidor, sobre los JSON que genera el build --------
+  const estatico = { indice: null, provincias: new Map() };
+
+  function haversineKm(lat1, lon1, lat2, lon2) {
+    const rad = Math.PI / 180;
+    const dLat = (lat2 - lat1) * rad, dLon = (lon2 - lon1) * rad;
+    const a = Math.sin(dLat / 2) ** 2 +
+      Math.cos(lat1 * rad) * Math.cos(lat2 * rad) * Math.sin(dLon / 2) ** 2;
+    return 2 * 6371.0088 * Math.asin(Math.sqrt(a));
+  }
+
+  async function json(ruta) {
+    const r = await fetch(ruta, { headers: { Accept: "application/json" } });
+    if (!r.ok) throw new Error("No disponible: " + ruta);
+    return r.json();
+  }
+
+  async function consultarEstatico() {
+    if (!estatico.indice) estatico.indice = await json("datos/indice.json");
+    const { indice } = estatico;
+    const { lat, lon } = estado.pos;
+
+    // Solo se descargan las provincias cuyo recuadro toca el radio de búsqueda.
+    const dLat = estado.radio / 111.32;
+    const dLon = estado.radio / (111.32 * Math.max(Math.cos(lat * Math.PI / 180), 0.01));
+    const necesarias = indice.provincias.filter((p) =>
+      lat >= p.bb[0] - dLat && lat <= p.bb[1] + dLat &&
+      lon >= p.bb[2] - dLon && lon <= p.bb[3] + dLon);
+
+    await Promise.all(necesarias.map(async (p) => {
+      if (estatico.provincias.has(p.s)) return;
+      try {
+        estatico.provincias.set(p.s, await json("datos/" + p.s + ".json"));
+      } catch (_) {
+        estatico.provincias.set(p.s, { e: [] });
+      }
+    }));
+
+    const columna = indice.campos.indexOf(estado.producto);
+    const resultados = [];
+    for (const p of necesarias) {
+      for (const f of (estatico.provincias.get(p.s)?.e || [])) {
+        const precio = f[6][columna];
+        if (!precio) continue;
+        const d = haversineKm(lat, lon, f[4], f[5]);
+        if (d > estado.radio) continue;
+        const litrosDesvio = (2 * d) * estado.consumo / 100;
+        resultados.push({
+          rotulo: f[0], direccion: f[1], municipio: f[2], horario: f[3],
+          lat: f[4], lon: f[5],
+          distancia_km: +d.toFixed(2),
+          precio,
+          coste_total: +(precio * (estado.litros + litrosDesvio)).toFixed(2),
+        });
+      }
+    }
+
+    const clave = { coste: "coste_total", precio: "precio", distancia: "distancia_km" }[estado.orden];
+    resultados.sort((a, b) => a[clave] - b[clave] || a.distancia_km - b.distancia_km);
+
+    return {
+      fecha_origen: indice.fecha || "",
+      total_encontradas: resultados.length,
+      precio_medio: resultados.length
+        ? +(resultados.reduce((s, e) => s + e.precio, 0) / resultados.length).toFixed(3) : null,
+      resultados: resultados.slice(0, 25),
+    };
+  }
+
+  async function buscar() {
+    if (!estado.pos) return;
+    $("btnBuscar").disabled = true;
+    $("btnBuscar").textContent = "Buscando estaciones…";
+    try {
+      let datos;
+      try {
+        datos = await consultar();          // backend en vivo, si lo hay
+        estado.demo = false;
+      } catch (_) {
+        try {
+          datos = await consultarEstatico(); // sitio estático, sin servidor
+          estado.demo = false;
+        } catch (_) {
+          datos = demo();                    // ni una cosa ni otra: maqueta
+          estado.demo = true;
+        }
+      }
+      pintar(datos);
+    } catch (err) {
+      aviso("No se han podido cargar los precios. Inténtalo de nuevo en unos minutos.", true);
+      $("resultado").innerHTML = "";
+    } finally {
+      $("btnBuscar").disabled = false;
+      $("btnBuscar").textContent = "Buscar cerca de mí";
+    }
+  }
+
+  function enIframe() {
+    try { return window.self !== window.top; } catch (_) { return true; }
+  }
+
+  function localizar() {
+    if (!navigator.geolocation) {
+      aviso("Este navegador no permite la geolocalización. Elige una ubicación de la lista.", true);
+      return;
+    }
+    if (enIframe()) {
+      aviso("Esta vista previa va incrustada en otra página y no puede acceder al GPS. " +
+            "Elige una ubicación de la lista, o abre la maqueta en una pestaña propia.", true);
+      return;
+    }
+    $("btnBuscar").disabled = true;
+    $("btnBuscar").textContent = "Localizando…";
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        estado.pos = { lat: p.coords.latitude, lon: p.coords.longitude };
+        estado.lugar = null;
+        $("ciudad").value = "";
+        aviso("");
+        buscar();
+      },
+      (err) => {
+        $("btnBuscar").disabled = false;
+        $("btnBuscar").textContent = "Buscar cerca de mí";
+        aviso(err.code === 1
+          ? "Necesitamos tu ubicación para medir distancias. Actívala para Rastreoil en los ajustes del navegador, o elige una ubicación de la lista."
+          : "No hemos podido obtener tu ubicación. Comprueba el GPS, o elige una ubicación de la lista.", true);
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 60000 }
+    );
+  }
+
+  // --- Pintado --------------------------------------------------------------
+  function pintar(datos) {
+    const lista = datos.resultados || [];
+    const nombreProducto = (PRODUCTOS.find(([c]) => c === estado.producto) || [, ""])[1];
+
+    if (datos.fecha_origen) $("sello").textContent = "Actualizado " + datos.fecha_origen;
+
+    const notas = [];
+    if (estado.lugar) notas.push("Centrado en " + escapar(estado.lugar) + ", no en tu posición real.");
+    if (estado.demo) notas.push("Modo maqueta: estaciones y precios ficticios para probar la interfaz. " +
+      "Con el backend conectado aparecen las EESS reales del Ministerio.");
+    aviso(notas.join(" "));
+
+    if (!lista.length) {
+      $("resultado").innerHTML =
+        `<div class="aviso">Ninguna estación vende ${nombreProducto.toLowerCase()} en ${estado.radio} km.
+         Amplía el radio o cambia de carburante.</div>`;
+      return;
+    }
+
+    const mejor = lista[0];
+    const media = datos.precio_medio;
+    const ahorro = media ? (media - mejor.precio) * estado.litros : 0;
+    const ruta = `https://www.google.com/maps/dir/?api=1&destination=${mejor.lat},${mejor.lon}`;
+    const desvio = mejor.coste_total - mejor.precio * estado.litros;
+
+    const resto = lista.slice(1).map((e) => `
+      <li>
+        <a href="https://www.google.com/maps/dir/?api=1&destination=${e.lat},${e.lon}" target="_blank" rel="noopener">
+          <span class="p">${eur(e.precio, 3)}</span>
+          <span>
+            <span class="n">${escapar(e.rotulo)}</span>
+            <span class="d">${escapar(e.direccion)} · ${escapar(e.municipio)}</span>
+          </span>
+          <span class="km">${km(e.distancia_km)} km</span>
+        </a>
+      </li>`).join("");
+
+    $("resultado").innerHTML = `
+      <section class="totem">
+        <div class="totem-mastil">
+          <div class="totem-rotulo">${escapar(mejor.rotulo)}</div>
+          <div class="totem-cifra">
+            <div class="precio-grande">${eur(mejor.precio, 3)}<small>€/l</small></div>
+            <div class="totem-lejos">${km(mejor.distancia_km)}<small>kilómetros</small></div>
+          </div>
+        </div>
+        <div class="totem-pie">
+          <div class="totem-datos">
+            <b>${eur(mejor.coste_total)} € por ${eur(estado.litros, 0)} litros</b>
+            ${desvio > 0.02 ? `<i>Incluye ${eur(desvio)} € del carburante que gastas en ir y volver</i>` : ""}
+            ${ahorro > 0.05 ? `<i class="ahorro">Ahorras ${eur(ahorro)} € frente a la media de la zona</i>` : ""}
+            <i>${escapar(mejor.direccion)}, ${escapar(mejor.municipio)}</i>
+            ${mejor.horario ? `<i>${escapar(mejor.horario)}</i>` : ""}
+          </div>
+          <a class="ir" href="${ruta}" target="_blank" rel="noopener">Cómo llegar</a>
+        </div>
+      </section>
+      ${resto ? `<ul class="lista">${resto}</ul>` : ""}
+      <p class="pie">${datos.total_encontradas} estaciones con ${nombreProducto.toLowerCase()} en ${estado.radio} km.
+      Precio medio de la zona: ${media ? eur(media, 3) + " €/l" : "n/d"}.</p>`;
+  }
+
+  function escapar(t) {
+    return String(t ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  }
+
+  // --- Maqueta sin backend --------------------------------------------------
+  // Genera estaciones ficticias alrededor de la posición real para probar la UX.
+  function demo() {
+    const rotulos = ["Ballenoil", "Repsol", "Cepsa", "BP", "Shell", "Galp", "Petroprix", "Plenoil",
+                     "Carrefour", "Alcampo", "Avia", "Meroil"];
+    const base = { gasolina95: 1.629, gasolina98: 1.789, diesel: 1.579, diesel_premium: 1.729, glp: 0.939 }[estado.producto] || 1.6;
+    let semilla = Math.floor(Math.abs(estado.pos.lat * 1000) + Math.abs(estado.pos.lon * 1000));
+    const rnd = () => { semilla = (semilla * 1103515245 + 12345) % 2147483648; return semilla / 2147483648; };
+
+    const lista = [];
+    for (let i = 0; i < 14; i++) {
+      const d = 0.4 + rnd() * (estado.radio - 0.4);
+      const ang = rnd() * 2 * Math.PI;
+      const precio = +(base - 0.13 + rnd() * 0.26).toFixed(3);
+      const litrosDesvio = (2 * d) * estado.consumo / 100;
+      lista.push({
+        id: "demo" + i,
+        rotulo: rotulos[Math.floor(rnd() * rotulos.length)],
+        direccion: "Carretera de ejemplo, km " + (1 + Math.floor(rnd() * 40)),
+        municipio: "Municipio de prueba",
+        horario: "L-D: 06:00-23:00",
+        lat: estado.pos.lat + (d / 111.32) * Math.cos(ang),
+        lon: estado.pos.lon + (d / (111.32 * Math.cos(estado.pos.lat * Math.PI / 180))) * Math.sin(ang),
+        distancia_km: +d.toFixed(2),
+        precio,
+        coste_total: +(precio * (estado.litros + litrosDesvio)).toFixed(2),
+      });
+    }
+    const clave = { coste: "coste_total", precio: "precio", distancia: "distancia_km" }[estado.orden];
+    lista.sort((a, b) => a[clave] - b[clave]);
+    return {
+      fecha_origen: "",
+      total_encontradas: lista.length,
+      precio_medio: +(lista.reduce((s, e) => s + e.precio, 0) / lista.length).toFixed(3),
+      resultados: lista,
+    };
+  }
+
+  // --- Eventos --------------------------------------------------------------
+  function relanzar() { guardarPrefs(); if (estado.pos) buscar(); }
+
+  $("btnBuscar").addEventListener("click", localizar);
+  $("ciudad").addEventListener("change", (e) => {
+    const i = e.target.value;
+    if (i === "") return;
+    const [nombre, lat, lon] = UBICACIONES[+i];
+    estado.pos = { lat, lon };
+    estado.lugar = nombre;
+    buscar();
+  });
+  $("chipsProducto").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-producto]"); if (!b) return;
+    estado.producto = b.dataset.producto; sincronizar(); relanzar();
+  });
+  $("orden").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-orden]"); if (!b) return;
+    estado.orden = b.dataset.orden; sincronizar(); relanzar();
+  });
+  $("radio").addEventListener("input", (e) => {
+    estado.radio = +e.target.value; $("radioValor").textContent = estado.radio + " km";
+  });
+  $("radio").addEventListener("change", relanzar);
+  $("litros").addEventListener("change", (e) => {
+    estado.litros = Math.min(200, Math.max(1, +e.target.value || 40)); e.target.value = estado.litros; relanzar();
+  });
+  $("consumo").addEventListener("change", (e) => {
+    estado.consumo = Math.min(40, Math.max(1, +e.target.value || 6.5)); e.target.value = estado.consumo; relanzar();
+  });
+
+  $("ciudad").insertAdjacentHTML("beforeend", UBICACIONES
+    .map(([nombre], i) => `<option value="${i}">${nombre}</option>`).join(""));
+
+  cargarPrefs();
+  pintarChips();
+  sincronizar();
+})();
+</script>
+</body>
+</html>
