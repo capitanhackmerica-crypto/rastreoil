@@ -276,7 +276,7 @@ def envoltura(*, titulo: str, descripcion: str, canonica: str, cuerpo: str,
 <body>
 <div class="envoltura">
 <header class="cabecera">
-  <a class="marca" href="{raiz}">Rastre<span>oil</span></a>
+  <a class="marca" href="{raiz}"><svg class="gota" viewBox="0 0 120 120" aria-hidden="true"><path d="M60 18c0 0 32 34 32 52a32 32 0 0 1-64 0c0-18 32-52 32-52z" fill="currentColor"/><text x="60" y="86" text-anchor="middle" font-family="var(--cond)" font-weight="700" font-size="42" fill="var(--papel)">€</text></svg><span class="txt">Rastre<span>oil</span></span></a>
   <div class="sello">Precios del {esc(fecha) or "Ministerio"}</div>
 </header>
 {cuerpo}
@@ -524,7 +524,9 @@ body{margin:0;background:var(--papel);color:var(--tinta);font-family:var(--sans)
 .cabecera{display:flex;align-items:baseline;justify-content:space-between;gap:1rem;
 padding-bottom:.8rem;border-bottom:2px solid var(--tinta);margin-bottom:1.2rem}
 .marca{font-family:var(--cond);font-weight:700;font-size:1.9rem;line-height:1;text-decoration:none;color:inherit}
-.marca span{color:var(--verde)}
+.marca{display:flex;align-items:center;gap:.4rem}
+.marca .gota{width:1.15em;height:1.15em;color:var(--verde);flex-shrink:0}
+.marca .txt span{color:var(--verde)}
 .sello{font-size:.76rem;color:var(--tinta-suave);text-align:right}
 .miga{font-size:.82rem;color:var(--tinta-suave);margin-bottom:.8rem}
 .miga a{color:var(--senal)}
